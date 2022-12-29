@@ -1,5 +1,7 @@
 export default defineNuxtConfig({
+  ssr: false,
   modules: ["@nuxtjs/tailwindcss"],
+  css: ["@/assets/css/variables.scss"],
   app: {
     pageTransition: { name: "page", mode: "in-out" },
     head: {
@@ -11,12 +13,8 @@ export default defineNuxtConfig({
           rel: "stylesheet",
           href: "https://design.swedbankpay.com/v/10.5.0/styles/swedbankpay.css",
         },
-        { rel: "stylesheet", href: "/css/global.css" },
       ],
       meta: [{ name: "description", content: "My SpaceXmas Pokemon Project." }],
     },
-  },
-  tailwindcss: {
-    cssPath: "~/assets/style/variables.scss",
   },
 });
