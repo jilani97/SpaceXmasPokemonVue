@@ -35,14 +35,16 @@ $pokemon-font-border: #3068a8;
 
 .pokeball-border {
   border-top: 2px solid $pokeball-top-border;
-  border-left: 4px solid black;
-  border-right: 4px solid black;
   border-bottom: 2px solid $pokeball-bottom-border;
 }
 
 body {
   -webkit-text-fill-color: $pokemon-base;
   -webkit-text-stroke: 2px $pokemon-font-border;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow-x: hidden;
 }
 
 .title {
