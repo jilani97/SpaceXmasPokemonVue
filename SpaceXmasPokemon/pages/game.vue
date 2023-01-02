@@ -1,8 +1,22 @@
 <template>
-  <div id="app" @click="iChooseYou()">
-    <div class="pokemon grid grid-cols-6 gap-4 w-100 mt-36">
+  <div id="app">
+    <div class="playerStats grid grid-cols-6 gap-4 w-100">
+      <div class="col-start-1 col-end-3">
+        {{ p1 + " x: " + p2xPos + " y: " + p2yPos }}
+      </div>
+      <div class="col-end-7 col-span-2">
+        {{ p2 + " x: " + p1xPos + " y: " + p1yPos }}
+      </div>
+    </div>
+    <div
+      class="pokemon grid grid-cols-6 gap-4 w-100 pt-48 mt-36"
+      tabindex="0"
+      @keydown.left="onArrowLeft"
+      @keydown.up="onArrowUp"
+      @keydown.right="onArrowRight"
+      @keydown.down="onArrowDown"
+    >
       <div class="col-start-3 col-end-4 pkmn exit left">
-        {{ p1 }}
         <div class="poke ball">
           <span class="x">
             <span class="y">
@@ -10,11 +24,13 @@
             </span>
           </span>
         </div>
-        <div class="mon"></div>
+        <div
+          class="mon"
+          v-bind:before="{ '--p2xPos': p2xPos, '--p2yPos': p2yPos }"
+        ></div>
         <div class="explode"></div>
       </div>
       <div class="col-end-6 col-span-2 pkmn exit right">
-        <div>{{ p2 }}</div>
         <div class="premier ball">
           <span class="x">
             <span class="y">
@@ -22,7 +38,10 @@
             </span>
           </span>
         </div>
-        <div class="mon"></div>
+        <div
+          class="mon"
+          :style="{ '--p1xPos': p1xPos + 'px', '--p1yPos': p1yPos + 'px' }"
+        ></div>
         <div class="explode"></div>
       </div>
     </div>
@@ -32,42 +51,113 @@
 <script setup>
 const p1 = ref(null);
 const p2 = ref(null);
-const src = "https://img.pokemondb.net/sprites/black-white/anim/normal/";
-const localGifs = "/gif/";
-const iChooseYou = () => {
+
+const p1xPos = ref(0);
+const p1yPos = ref(0);
+
+const p2xPos = ref(0);
+const p2yPos = ref(0);
+
+const playerSpeed = 10;
+
+const onArrowUp = (e) => {
   const pkmn = document.querySelector(".pkmn");
   pkmn.classList.remove("exit");
-  setTimeout(() => {
-    const poke1 = pokes[Math.floor(Math.random() * pokes.length)];
-    p1.value = poke1;
-    const poke2 = pokelegaer[Math.floor(Math.random() * pokelegaer.length)];
-    p2.value = poke2;
-    document.querySelector("#app").setAttribute(
-      `style`,
-      `
-      --poke1:url(${src}${poke1}.gif);
-      --poke2:url(${localGifs}${poke2}.gif);
-    `
-    );
-    pkmn.classList.add("exit");
-  }, 100);
-  clearTimeout(timer);
-  timer = setTimeout(iChooseYou, 9000);
+  pkmn.classList.add("playerJump");
+  setTimeout(function () {
+    pkmn.classList.remove("playerJump");
+  }, 1500);
 };
 
-let timer = setTimeout(iChooseYou, 6000);
+const onArrowLeft = (e) => {
+  const pkmn = document.querySelector(".col-span-2.pkmn");
+  console.log(pkmn);
+  if (pkmn.classList.contains("left")) {
+    pkmn.classList.remove("left");
+    if (!pkmn.classList.contains("right")) pkmn.classList.add("right");
+  }
+  p1xPos.value -= playerSpeed + p1xPos.value;
+  // if (p1xPos.value <= -540) {
+  //   p1xPos.value = -539;
+  // }
+};
+const onArrowRight = (e) => {
+  const pkmn = document.querySelector(".col-span-2.pkmn");
+  console.log(pkmn, "arrowRight");
+  if (pkmn.classList.contains("right")) {
+    pkmn.classList.remove("right");
+    if (!pkmn.classList.contains("left")) pkmn.classList.add("left");
+  }
+  p1xPos.value -= playerSpeed - p1xPos.value;
+  // if (p1xPos.value >= -350) {
+  //   p1xPos.value = -349;
+  // }
+};
 
-const pokes = ["charizard", "pikachu", "lucario", "blaziken", "mew", "mewtwo"];
-const pokelegaer = [
-  "erik-electabuzz",
-  "stephan-snorlax",
-  "marius-machamp",
-  "ilham-ivysaur",
-  "tobi-toxicroak",
-];
+function onMouseMove(e) {
+  p1xPos.value = e.clientX - 500;
+  p1yPos.value = e.clientY - 450;
+
+  if (p1yPos.value >= 0) {
+    // p1xPos.value = e.clientX - e.clientX;
+    p1yPos.value = e.clientY - e.clientY - 1;
+  }
+}
+
+const pokeDbUrl = "https://img.pokemondb.net/sprites/black-white/anim/normal/";
+const localUrl = "/gif/";
+const pokes = reactive([
+  { name: "charizard", url: pokeDbUrl },
+  { name: "pikachu", url: pokeDbUrl },
+  { name: "lucario", url: pokeDbUrl },
+  { name: "blaziken", url: pokeDbUrl },
+  { name: "mew", url: pokeDbUrl },
+  { name: "mewtwo", url: pokeDbUrl },
+
+  { name: "erik-electabuzz", url: localUrl },
+  { name: "stephan-snorlax", url: localUrl },
+  { name: "marius-machamp", url: localUrl },
+  { name: "ilham-ivysaur", url: localUrl },
+  { name: "tobi-toxicroak", url: localUrl },
+
+  { name: "gengar", url: pokeDbUrl },
+]);
+function iChooseYou() {
+  const pkmn = document.querySelector(".pkmn");
+  pkmn.classList.remove("exit");
+
+  const poke1 = pokes[Math.floor(Math.random() * pokes.length)];
+  const poke2 = pokes.filter((poke) =>
+    poke.name.includes(localStorage.getItem("player1"))
+  )[0];
+  p1.value = poke1.name;
+  p2.value = poke2.name;
+  document.querySelector("#app").setAttribute(
+    `style`,
+    `
+      --poke1:url(${poke1.url}${poke1.name}.gif);
+      --poke2:url(${poke2.url}${poke2.name}.gif);
+    `
+  );
+  pkmn.classList.add("exit");
+}
+
+onMounted(() => {
+  iChooseYou();
+});
 </script>
 
 <style lang="scss" scoped>
+#app {
+  background-image: url("https://i.gifer.com/NCWB.gif");
+  background-size: contain;
+}
+
+.playerStats {
+  -webkit-text-fill-color: white;
+  -webkit-text-stroke: 0px;
+}
+
 /* pokeballs code */
 
 $cell: 41px;
@@ -448,10 +538,10 @@ $offset-beast: $cell * 26;
 .pkmn .mon:before {
   content: "";
   position: absolute;
-  left: 0;
-  top: 0;
   width: 100%;
   height: 100%;
+  left: var(--p2xPos);
+  top: var(--p2yPos);
   background-repeat: no-repeat;
   background-position: center bottom;
   transform-origin: center 125px;
@@ -460,6 +550,40 @@ $offset-beast: $cell * 26;
 
 .pkmn:nth-child(2) .mon:before {
   background-image: var(--poke2);
+  left: var(--p1xPos);
+  top: var(--p1yPos);
+}
+
+.pkmn.playerJump .mon:before {
+  animation: playerJump 1.5s 2;
+  animation-direction: alternate;
+}
+
+@keyframes playerJump {
+  0% {
+    transform: translateY(0rem);
+  }
+
+  20% {
+    transform: translateY(-5rem);
+  }
+
+  50%,
+  60% {
+    transform: translateY(-8rem) rotateZ(180deg);
+  }
+
+  62% {
+    transform: translateY(-9.5rem) rotateZ(-180deg);
+  }
+
+  80% {
+    transform: translateY(-5rem);
+  }
+
+  100% {
+    transform: translateY(0rem);
+  }
 }
 
 .pkmn .ball {

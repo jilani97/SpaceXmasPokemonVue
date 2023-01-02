@@ -2,11 +2,12 @@
   <div>
     <nav class="pokeball-border text-center">
       <div class="title h1">
-        <NuxtLink to="https://nuxtjs.org"> SpaceXmasPokemon </NuxtLink>
+        <NuxtLink to="/"> SpaceXmasPokemon </NuxtLink>
       </div>
     </nav>
-    <NuxtPage class="flex justify-center" />
-    <footer class="absolute bottom-0 left-1/3">
+    <NuxtPage />
+    <div class="footerText text-center">Use Arrow keys to Move</div>
+    <footer class="footerText absolute bottom-0 text-center w-100">
       <p>
         Credit to
         <a
@@ -25,6 +26,11 @@
 </template>
 
 <style lang="scss">
+.footerText {
+  -webkit-text-fill-color: black;
+  -webkit-text-stroke: 0px black;
+}
+
 $pokeball-top-border: #e33a1c;
 $pokeball-middle: #ee7f56;
 $pokeball-end: #ce2312;
@@ -60,6 +66,12 @@ body {
   border: 5px solid black;
   border-radius: 50px;
   padding: 10px;
+  text-decoration: none;
+}
+
+.title a:visited {
+  -webkit-text-fill-color: $pokemon-base;
+  -webkit-text-stroke: 1px $pokemon-font-border;
 }
 
 .title::after {
