@@ -1,11 +1,25 @@
 <template>
-  <div id="app">
-    <div class="playerStats grid grid-cols-6 gap-4 w-100">
-      <div class="col-start-1 col-end-3">
-        {{ p1 + " x: " + p2xPos + " y: " + p2yPos }}
+  <div id="app" :style="{ '--poke1': p1Url, '--poke2': p2Url }">
+    <div class="playerStats grid grid-cols-4 gap-4 w-100">
+      <div class="col-start-2 col-end-3">
+        <HealthBar
+          :name="p1.name"
+          :health="p2Health"
+          :max-health="p2MaxHealth"
+          :x-pos="p2xPos"
+          :y-pos="p2yPos"
+          id="p1"
+        ></HealthBar>
       </div>
-      <div class="col-end-7 col-span-2">
-        {{ p2 + " x: " + p1xPos + " y: " + p1yPos }}
+      <div class="col-end-4 col-span-1">
+        <HealthBar
+          :name="p2.name"
+          :health="p1Health"
+          :max-health="p1MaxHealth"
+          :x-pos="p1xPos"
+          :y-pos="p1yPos"
+          id="p2"
+        ></HealthBar>
       </div>
     </div>
     <div
@@ -15,6 +29,7 @@
       @keydown.up="onArrowUp"
       @keydown.right="onArrowRight"
       @keydown.down="onArrowDown"
+      @keydown="onAttack"
     >
       <div class="col-start-3 col-end-4 pkmn exit left">
         <div class="poke ball">
@@ -25,12 +40,15 @@
           </span>
         </div>
         <div
-          class="mon"
-          v-bind:before="{ '--p2xPos': p2xPos, '--p2yPos': p2yPos }"
+          class="mon p2"
+          :style="{ '--p2xPos': p2xPos + 'px', '--p2yPos': p2yPos + 'px' }"
         ></div>
         <div class="explode"></div>
       </div>
-      <div class="col-end-6 col-span-2 pkmn exit right">
+      <div
+        class="col-end-6 col-span-2 pkmn exit right"
+        :style="{ '--p1xPos': p1xPos + 'px', '--p1yPos': p1yPos + 'px' }"
+      >
         <div class="premier ball">
           <span class="x">
             <span class="y">
@@ -38,10 +56,7 @@
             </span>
           </span>
         </div>
-        <div
-          class="mon"
-          :style="{ '--p1xPos': p1xPos + 'px', '--p1yPos': p1yPos + 'px' }"
-        ></div>
+        <div class="mon p1"></div>
         <div class="explode"></div>
       </div>
     </div>
@@ -49,8 +64,13 @@
 </template>
 
 <script setup>
-const p1 = ref(null);
-const p2 = ref(null);
+const selectedCharacter = localStorage.getItem("player1");
+
+const p1 = ref("null");
+const p2 = ref("null");
+
+const p1Url = ref("null");
+const p2Url = ref("null");
 
 const p1xPos = ref(0);
 const p1yPos = ref(0);
@@ -58,51 +78,44 @@ const p1yPos = ref(0);
 const p2xPos = ref(0);
 const p2yPos = ref(0);
 
+const p1Health = ref(100);
+const p2Health = ref(100);
+
+const p1MaxHealth = ref(100);
+const p2MaxHealth = ref(100);
+
 const playerSpeed = 10;
 
 const onArrowUp = (e) => {
-  const pkmn = document.querySelector(".pkmn");
-  pkmn.classList.remove("exit");
+  const pkmn = document.querySelector(".pkmn.right");
   pkmn.classList.add("playerJump");
-  setTimeout(function () {
+  setTimeout(() => {
     pkmn.classList.remove("playerJump");
   }, 1500);
 };
 
 const onArrowLeft = (e) => {
-  const pkmn = document.querySelector(".col-span-2.pkmn");
-  console.log(pkmn);
-  if (pkmn.classList.contains("left")) {
-    pkmn.classList.remove("left");
-    if (!pkmn.classList.contains("right")) pkmn.classList.add("right");
+  const pkmn = document.querySelector(".p1");
+  if (pkmn.classList.contains("flip")) {
+    pkmn.classList.remove("flip");
+    p1xPos.value = p1xPos.value + p1xPos.value * -2;
   }
-  p1xPos.value -= playerSpeed + p1xPos.value;
-  // if (p1xPos.value <= -540) {
-  //   p1xPos.value = -539;
-  // }
+  p1xPos.value -= playerSpeed;
+  if (p1xPos.value <= -1000) {
+    p1xPos.value = -999;
+  }
 };
 const onArrowRight = (e) => {
-  const pkmn = document.querySelector(".col-span-2.pkmn");
-  console.log(pkmn, "arrowRight");
-  if (pkmn.classList.contains("right")) {
-    pkmn.classList.remove("right");
-    if (!pkmn.classList.contains("left")) pkmn.classList.add("left");
+  const pkmn = document.querySelector(".p1");
+  if (!pkmn.classList.contains("flip")) {
+    pkmn.classList.add("flip");
+    p1xPos.value = p1xPos.value + p1xPos.value * -2;
   }
-  p1xPos.value -= playerSpeed - p1xPos.value;
-  // if (p1xPos.value >= -350) {
-  //   p1xPos.value = -349;
-  // }
+  p1xPos.value -= playerSpeed;
+  if (p1xPos.value <= -825) {
+    p1xPos.value = -820;
+  }
 };
-
-function onMouseMove(e) {
-  p1xPos.value = e.clientX - 500;
-  p1yPos.value = e.clientY - 450;
-
-  if (p1yPos.value >= 0) {
-    // p1xPos.value = e.clientX - e.clientX;
-    p1yPos.value = e.clientY - e.clientY - 1;
-  }
-}
 
 const pokeDbUrl = "https://img.pokemondb.net/sprites/black-white/anim/normal/";
 const localUrl = "/gif/";
@@ -128,19 +141,32 @@ function iChooseYou() {
 
   const poke1 = pokes[Math.floor(Math.random() * pokes.length)];
   const poke2 = pokes.filter((poke) =>
-    poke.name.includes(localStorage.getItem("player1"))
+    poke.name.includes(selectedCharacter)
   )[0];
-  p1.value = poke1.name;
-  p2.value = poke2.name;
-  document.querySelector("#app").setAttribute(
-    `style`,
-    `
-      --poke1:url(${poke1.url}${poke1.name}.gif);
-      --poke2:url(${poke2.url}${poke2.name}.gif);
-    `
-  );
+  p1.value = poke1;
+  p2.value = poke2;
+  p1Url.value = "url(" + poke1.url + poke1.name + ".gif)";
+  p2Url.value = "url(" + poke2.url + poke2.name + ".gif)";
+
+  console.log(p2Url.value);
   pkmn.classList.add("exit");
 }
+
+const onAttack = (e) => {
+  if (e.key == "x") {
+    p2Url.value =
+      "url(" +
+      "/gif-pokemon-actions/" +
+      p2.value.name +
+      "/" +
+      p2.value.name +
+      "-attack.gif)";
+    setTimeout(() => {
+      p2Url.value = "url(" + poke2.url + poke2.name + ".gif)";
+    }, 1500);
+    p1Health.value -= 20;
+  }
+};
 
 onMounted(() => {
   iChooseYou();
@@ -148,6 +174,36 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.pkmn.playerJump .mon:before {
+  animation: playerJump 1.5s linear;
+}
+
+@keyframes playerJump {
+  0% {
+    transform: translateY(0rem);
+  }
+
+  33% {
+    transform: translateY(0rem);
+  }
+
+  50% {
+    transform: translateY(-10rem) rotate(240deg);
+  }
+
+  66% {
+    transform: rotate(360deg);
+  }
+
+  100% {
+    transform: translateY(0rem) rotate(360deg);
+  }
+}
+
+.flip {
+  transform: rotateY(180deg) !important;
+}
+
 #app {
   background-image: url("https://i.gifer.com/NCWB.gif");
   background-size: contain;
@@ -514,11 +570,6 @@ $offset-beast: $cell * 26;
 
 /* pokemon throw/exit animation code */
 
-:root {
-  --poke1: url("https://img.pokemondb.net/sprites/black-white/anim/normal/eevee.gif");
-  --poke2: url("https://img.pokemondb.net/sprites/black-white/anim/normal/pikachu.gif");
-}
-
 .pkmn {
   width: 160px;
   height: 140px;
@@ -554,38 +605,6 @@ $offset-beast: $cell * 26;
   top: var(--p1yPos);
 }
 
-.pkmn.playerJump .mon:before {
-  animation: playerJump 1.5s 2;
-  animation-direction: alternate;
-}
-
-@keyframes playerJump {
-  0% {
-    transform: translateY(0rem);
-  }
-
-  20% {
-    transform: translateY(-5rem);
-  }
-
-  50%,
-  60% {
-    transform: translateY(-8rem) rotateZ(180deg);
-  }
-
-  62% {
-    transform: translateY(-9.5rem) rotateZ(-180deg);
-  }
-
-  80% {
-    transform: translateY(-5rem);
-  }
-
-  100% {
-    transform: translateY(0rem);
-  }
-}
-
 .pkmn .ball {
   position: absolute;
   left: 10%;
@@ -601,6 +620,7 @@ $offset-beast: $cell * 26;
 }
 
 .pkmn.exit .mon:before {
+  animation-name: mon-poof;
   animation-delay: 1.5s;
   animation-duration: 0.75s;
   animation-timing-function: ease-out;
@@ -608,9 +628,7 @@ $offset-beast: $cell * 26;
   animation-iteration-count: 1;
   animation-direction: forwards;
 }
-.pkmn.exit .mon:before {
-  animation-name: mon-poof;
-}
+
 .pkmn.exit:nth-child(2) .mon:before {
   animation-name: mon-poof-2;
 }
@@ -876,10 +894,6 @@ $ecell: 240px;
   animation-timing-function: steps(1);
 }
 
-.pkmn.exit .mon:before {
-  animation-delay: 1.33s;
-  animation-duration: var(--slowmo, 1s);
-}
 .pkmn.exit .explode,
 .pkmn.exit .explode:before {
   animation-delay: 1s;
