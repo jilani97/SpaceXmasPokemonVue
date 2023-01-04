@@ -28,7 +28,6 @@
       @keydown.left="onArrowLeft"
       @keydown.up="onArrowUp"
       @keydown.right="onArrowRight"
-      @keydown.down="onArrowDown"
       @keydown="onAttack"
     >
       <div class="col-start-3 col-end-4 pkmn exit left">
@@ -86,13 +85,13 @@ const p2MaxHealth = ref(100);
 
 const playerSpeed = 10;
 
-const onArrowUp = (e) => {
+function onArrowUp() {
   const pkmn = document.querySelector(".pkmn.right");
   pkmn.classList.add("playerJump");
   setTimeout(() => {
     pkmn.classList.remove("playerJump");
   }, 1500);
-};
+}
 
 const onArrowLeft = (e) => {
   const pkmn = document.querySelector(".p1");
@@ -148,7 +147,6 @@ function iChooseYou() {
   idleState(poke1, p1Url);
   idleState(poke2, p2Url);
 
-  console.log(p2Url.value);
   pkmn.classList.add("exit");
 }
 
@@ -156,17 +154,26 @@ function idleState(poke, imgUrl) {
   imgUrl.value = "url(" + poke.url + poke.name + ".gif)";
 }
 
+function attackState(imgUrl, player) {
+  imgUrl.value =
+    "url(" +
+    "/gif-pokemon-actions/" +
+    player.value.name +
+    "/" +
+    player.value.name +
+    "-attack.gif)";
+}
+
 const onAttack = (e) => {
   if (e.key == "x") {
-    p2Url.value =
-      "url(" +
-      "/gif-pokemon-actions/" +
-      p2.value.name +
-      "/" +
-      p2.value.name +
-      "-attack.gif)";
+    const pkmn = document.querySelector(".pkmn.right");
+    pkmn.classList.add("attack");
+    if (pkmn.classList.contains("attack")) {
+      attackState(p2Url, p2);
+    }
     setTimeout(() => {
-      idleState();
+      pkmn.classList.remove("attack");
+      idleState(p2.value, p2Url);
     }, 1500);
     p2Health.value -= 20;
   }
@@ -178,7 +185,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.pkmn.playerJump .mon:before {
+.pkmn.right.playerJump .mon {
   animation: playerJump 1.5s linear;
 }
 
