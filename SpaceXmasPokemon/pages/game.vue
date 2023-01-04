@@ -23,32 +23,37 @@
       </div>
     </div>
     <div
-      class="pokemon grid grid-cols-6 gap-4 w-100 pt-48 mt-36"
+      class="winner text-5xl absolute text-center top-1/2 w-100 mx-auto playerStats hidden"
+    >
+      YOU WIN! START NEXT GAME
+    </div>
+    <div
+      class="pokemon w-100 pt-48 mt-36 relative"
       tabindex="0"
       @keydown.left="onArrowLeft"
       @keydown.up="onArrowUp"
       @keydown.right="onArrowRight"
       @keydown="onAttack"
     >
-      <div class="col-start-3 col-end-4 pkmn exit left">
-        <div class="poke ball">
+      <div
+        class="pkmn exit left"
+        :style="{ '--p2xPos': p2xPos + 'px', '--p2yPos': p2yPos + 'px' }"
+      >
+        <div class="ultra ball">
           <span class="x">
             <span class="y">
               <span class="sprite"> </span>
             </span>
           </span>
         </div>
-        <div
-          class="mon p2"
-          :style="{ '--p2xPos': p2xPos + 'px', '--p2yPos': p2yPos + 'px' }"
-        ></div>
+        <div class="mon p2"></div>
         <div class="explode"></div>
       </div>
       <div
-        class="col-end-6 col-span-2 pkmn exit right"
+        class="pkmn exit right"
         :style="{ '--p1xPos': p1xPos + 'px', '--p1yPos': p1yPos + 'px' }"
       >
-        <div class="premier ball">
+        <div class="master ball">
           <span class="x">
             <span class="y">
               <span class="sprite"> </span>
@@ -71,10 +76,10 @@ const p2 = ref("null");
 const p1Url = ref("null");
 const p2Url = ref("null");
 
-const p1xPos = ref(0);
+const p1xPos = ref(100);
 const p1yPos = ref(0);
 
-const p2xPos = ref(0);
+const p2xPos = ref(30);
 const p2yPos = ref(0);
 
 const p1Health = ref(100);
@@ -175,9 +180,31 @@ const onAttack = (e) => {
       pkmn.classList.remove("attack");
       idleState(p2.value, p2Url);
     }, 1500);
-    p2Health.value -= 20;
+    console.log(
+      "HP: " + p2Health.value,
+      " Are they colliding? " + pokemonCollision()
+    );
+    if (p2Health.value > 0 && pokemonCollision()) {
+      p2Health.value -= 20;
+    }
+    if (p2Health.value <= 0) {
+      declareWinner();
+    }
   }
 };
+
+function pokemonCollision() {
+  const width = 30;
+  console.log(Math.abs(p2xPos.value - p1xPos.value));
+  return width >= Math.abs(p2xPos.value - p1xPos.value);
+}
+
+function declareWinner() {
+  const loser = document.querySelector(".pkmn.left");
+  loser.classList.add("loser");
+  const winner = document.querySelector(".winner");
+  winner.classList.remove("hidden");
+}
 
 onMounted(() => {
   iChooseYou();
@@ -185,6 +212,25 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.pkmn.left.loser .mon {
+  animation: loseBattle 1s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes loseBattle {
+  0% {
+    transform: rotateZ(-30deg);
+  }
+
+  50% {
+    transform: translateX(-2rem) translateY(2.5rem) rotateZ(-50deg);
+  }
+
+  100% {
+    transform: translateX(-4rem) translateY(2.5rem) rotateZ(-70deg);
+  }
+}
+
 .pkmn.right.playerJump .mon {
   animation: playerJump 1.5s linear;
 }
@@ -582,10 +628,12 @@ $offset-beast: $cell * 26;
 /* pokemon throw/exit animation code */
 
 .pkmn {
-  width: 160px;
+  width: 85px;
   height: 140px;
   margin: 2px;
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 50px;
 }
 
 .pkmn .mon {
@@ -618,7 +666,7 @@ $offset-beast: $cell * 26;
 
 .pkmn .ball {
   position: absolute;
-  left: 10%;
+  left: calc(10% - 30px);
   bottom: -3px;
   top: auto;
   z-index: 1;
@@ -652,7 +700,7 @@ $offset-beast: $cell * 26;
 }
 .pkmn.right .ball {
   transform: scaleX(-1);
-  left: 63%;
+  left: calc(63% + 100px);
 }
 
 @keyframes mon-poof {
@@ -895,9 +943,11 @@ $ecell: 240px;
   animation-name: explode-filters;
   animation-timing-function: linear;
   opacity: 0;
+  left: 0px;
 }
 .pkmn.exit:nth-child(2) .explode {
   animation-name: explode-filters-2;
+  left: 130px;
 }
 
 .exit .explode:before {

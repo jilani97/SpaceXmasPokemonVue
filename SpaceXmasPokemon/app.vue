@@ -6,7 +6,9 @@
       </div>
     </nav>
     <NuxtPage />
-    <div class="footerText text-center">Use Arrow keys to Move</div>
+    <div class="footerText text-center">
+      Use Arrow keys to Move and x to attack
+    </div>
     <footer class="footerText absolute bottom-0 text-center w-100">
       <p>
         Credit to
