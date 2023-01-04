@@ -5,7 +5,7 @@
         <HealthBar
           :name="p1.name"
           :health="p2Health"
-          :max-health="p2MaxHealth"
+          :maxHealth="p2MaxHealth"
           :x-pos="p2xPos"
           :y-pos="p2yPos"
           id="p1"
@@ -15,7 +15,7 @@
         <HealthBar
           :name="p2.name"
           :health="p1Health"
-          :max-health="p1MaxHealth"
+          :maxHealth="p1MaxHealth"
           :x-pos="p1xPos"
           :y-pos="p1yPos"
           id="p2"
@@ -145,11 +145,15 @@ function iChooseYou() {
   )[0];
   p1.value = poke1;
   p2.value = poke2;
-  p1Url.value = "url(" + poke1.url + poke1.name + ".gif)";
-  p2Url.value = "url(" + poke2.url + poke2.name + ".gif)";
+  idleState(poke1, p1Url);
+  idleState(poke2, p2Url);
 
   console.log(p2Url.value);
   pkmn.classList.add("exit");
+}
+
+function idleState(poke, imgUrl) {
+  imgUrl.value = "url(" + poke.url + poke.name + ".gif)";
 }
 
 const onAttack = (e) => {
@@ -162,9 +166,9 @@ const onAttack = (e) => {
       p2.value.name +
       "-attack.gif)";
     setTimeout(() => {
-      p2Url.value = "url(" + poke2.url + poke2.name + ".gif)";
+      idleState();
     }, 1500);
-    p1Health.value -= 20;
+    p2Health.value -= 20;
   }
 };
 

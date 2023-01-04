@@ -21,7 +21,7 @@ const props = defineProps({
               class="health-bar--health"
               :style="{
                 '--health': health,
-                '--maxhHealth': maxHealth,
+                '--maxHealth': maxHealth,
               }"
             ></div>
           </div>
@@ -123,7 +123,7 @@ const props = defineProps({
           );
 
           .health-bar--health {
-            width: calc(var(--health) / (var(--maxHealth)) * 100%);
+            width: calc(var(--health) / var(--maxHealth) * 100%);
             height: 28px;
             background: linear-gradient(to bottom, #71af1b 0%, #94c94f 100%);
             clip-path: polygon(100% 0, 0 0, 0 102%, calc(100% - 18px) 102%);
