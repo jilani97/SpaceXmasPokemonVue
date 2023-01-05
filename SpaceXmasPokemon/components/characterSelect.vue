@@ -3,24 +3,16 @@ const props = defineProps({
   dataName: String,
   characterName: String,
   imgSrc: String,
+  id: String,
 });
-
-const select = () => {
-  const character = document.querySelector(".character");
-  console.log(character);
-  if (document.querySelector(".character.active")) {
-    document.querySelector(".character.active").classList.remove("active");
-  }
-  character.classList.add("active");
-};
 </script>
 
 <template>
   <a
     class="character"
+    :id="characterName"
     :data-name="dataName"
     :rel="characterName"
-    @click="select()"
     ><img class="character__img" :alt="characterName" :src="imgSrc" />
     <p class="character__name">{{ characterName }}</p></a
   >
@@ -60,9 +52,12 @@ const select = () => {
       width: 100%;
       background: #e3231e;
       color: white;
-      opacity: 0.7;
+      -webkit-text-fill-color: white;
+      -webkit-text-stroke: 0px;
+      opacity: 0.9;
       margin-top: 0.8em;
       font-size: 0.7em;
+      border-radius: 50px;
       text-transform: uppercase;
       font-weight: 700;
       padding: 0.3em 0;

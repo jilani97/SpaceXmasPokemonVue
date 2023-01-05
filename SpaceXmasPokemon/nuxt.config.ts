@@ -11,7 +11,7 @@ export default defineNuxtConfig({
       link: [
         {
           rel: "stylesheet",
-          href: "https://design.swedbankpay.com/v/10.5.0/styles/swedbankpay.css",
+          href: "https://design.swedbankpay.com/v/10.5.1/styles/swedbankpay.css",
         },
       ],
       meta: [{ name: "description", content: "My SpaceXmas Pokemon Project." }],

@@ -1,38 +1,42 @@
 <template>
-  <div class="row justify-content-center">
-    <div class="col-4">
-      <img class="sf-logo" src="/stadium.png" alt="Pokemon Stadium" />
+  <div>
+    <div class="row justify-content-center">
+      <div class="col-4">
+        <img class="sf-logo" src="/stadium.png" alt="Pokemon Stadium" />
+      </div>
+      <h1 class="col-7 align-self-center headTitle">Select Your Player</h1>
     </div>
-    <h1 class="col-7 align-self-center headTitle">Select Your Player</h1>
-  </div>
-  <div class="container">
-    <div class="select-container">
-      <CharacterSelect
-        v-for="item in pokes"
-        :dataName="item.name"
-        :characterName="item.name"
-        :imgSrc="item.url + item.name + '.gif'"
-        :key="item.name"
-      ></CharacterSelect>
-    </div>
-    <NuxtLink to="game" class="self-center">
-      <div
-        class="option faded"
-        id="option1"
-        @mouseover="startGameHoverEffect"
-        @mouseleave="endGameHoverEffect"
+    <div class="container">
+      <div class="select-container">
+        <CharacterSelect
+          v-for="item in pokes"
+          :dataName="item.name"
+          :characterName="item.name"
+          :imgSrc="item.url + item.name + '.gif'"
+          :id="item.name"
+          :key="item.name"
+          @click="select(item.name)"
+        ></CharacterSelect>
+      </div>
+      <NuxtLink to="game" class="self-center">
+        <div
+          class="option faded"
+          id="option1"
+          @mouseover="startGameHoverEffect"
+          @mouseleave="endGameHoverEffect"
+        >
+          <div class="pokeball unselected">
+            <div class="upper-half"></div>
+            <div class="lower-half"></div>
+            <div class="base"></div>
+            <div class="inner-circle"></div>
+            <div class="indicator visible"></div>
+            <div class="indicator-inner"></div>
+          </div>
+          <div>Start Game</div>
+        </div></NuxtLink
       >
-        <div class="pokeball unselected">
-          <div class="upper-half"></div>
-          <div class="lower-half"></div>
-          <div class="base"></div>
-          <div class="inner-circle"></div>
-          <div class="indicator visible"></div>
-          <div class="indicator-inner"></div>
-        </div>
-        <div>Start Game</div>
-      </div></NuxtLink
-    >
+    </div>
   </div>
 </template>
 
@@ -57,14 +61,24 @@ const pokes = reactive([
   { name: "blaziken", url: pokeDbUrl },
   { name: "mew", url: pokeDbUrl },
   { name: "mewtwo", url: pokeDbUrl },
-  { name: "gengar", url: pokeDbUrl },
 
   { name: "erik-electabuzz", url: localUrl },
   { name: "stephan-snorlax", url: localUrl },
   { name: "marius-machamp", url: localUrl },
   { name: "ilham-ivysaur", url: localUrl },
   { name: "tobi-toxicroak", url: localUrl },
+
+  { name: "gengar", url: pokeDbUrl },
 ]);
+
+function select(id) {
+  const character = document.getElementById(id);
+  if (document.querySelector(".character.active")) {
+    document.querySelector(".character.active").classList.remove("active");
+  }
+  character.classList.add("active");
+  localStorage.setItem("player1", character.getAttribute("id"));
+}
 </script>
 
 <style scoped lang="scss">
