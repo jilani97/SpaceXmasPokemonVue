@@ -1,43 +1,47 @@
 <template>
-  <div id="app" :style="{ '--poke1': p1Url, '--poke2': p2Url }">
-    <div class="playerStats grid grid-cols-4 gap-4 w-100">
-      <div class="col-start-2 col-end-3">
+  <div id="app" :style="{ '--poke1': p1.imgUrl, '--poke2': p2.imgUrl }">
+    <div class="playerStats row w-100">
+      <div class="col-4 offset-sm-1">
         <HealthBar
-          :name="p1.name"
-          :health="p2Health"
-          :maxHealth="p2MaxHealth"
-          :x-pos="p2xPos"
-          :y-pos="p2yPos"
+          :name="p1.pokemon.name"
+          :health="p1.health"
+          :maxHealth="p1.maxHealth"
+          :x-pos="p1.xPos"
+          :y-pos="p1.yPos"
           id="p1"
         ></HealthBar>
       </div>
-      <div class="col-end-4 col-span-1">
+      <div class="col-4 offset-sm-2">
         <HealthBar
-          :name="p2.name"
-          :health="p1Health"
-          :maxHealth="p1MaxHealth"
-          :x-pos="p1xPos"
-          :y-pos="p1yPos"
+          :name="p2.pokemon.name"
+          :health="p2.health"
+          :maxHealth="p2.maxHealth"
+          :x-pos="p2.xPos"
+          :y-pos="p2.yPos"
           id="p2"
         ></HealthBar>
       </div>
     </div>
     <div
-      class="winner text-5xl absolute text-center top-1/2 w-100 mx-auto playerStats hidden"
+      class="winner text-5xl absolute text-center top-1/3 w-100 mx-auto playerStats hidden"
     >
-      YOU WIN! START NEXT GAME
+      {{ winnerAnnoucement }}
     </div>
     <div
       class="pokemon w-100 pt-48 mt-36 relative"
       tabindex="0"
-      @keydown.left="onArrowLeft"
-      @keydown.up="onArrowUp"
-      @keydown.right="onArrowRight"
-      @keydown="onAttack"
+      @keydown.left="onArrowLeft(p2)"
+      @keydown.up="onArrowUp(p2.direction)"
+      @keydown.right="onArrowRight(p2)"
+      @keydown.x="onAttack(p2, p1, 'x')"
+      @keyboard.enter="iChooseYou()"
     >
       <div
-        class="pkmn exit left"
-        :style="{ '--p2xPos': p2xPos + 'px', '--p2yPos': p2yPos + 'px' }"
+        class="pkmn exit left flip"
+        :style="{
+          '--p1xPos': p1.xPos + 'px',
+          '--p1yPos': p1.yPos + 'px',
+        }"
       >
         <div class="ultra ball">
           <span class="x">
@@ -51,7 +55,10 @@
       </div>
       <div
         class="pkmn exit right"
-        :style="{ '--p1xPos': p1xPos + 'px', '--p1yPos': p1yPos + 'px' }"
+        :style="{
+          '--p2xPos': p2.xPos + 'px',
+          '--p2yPos': p2.yPos + 'px',
+        }"
       >
         <div class="master ball">
           <span class="x">
@@ -69,57 +76,63 @@
 
 <script setup>
 const selectedCharacter = localStorage.getItem("player1");
+const winnerAnnoucement = ref("");
 
-const p1 = ref("null");
-const p2 = ref("null");
-
-const p1Url = ref("null");
-const p2Url = ref("null");
-
-const p1xPos = ref(100);
-const p1yPos = ref(0);
-
-const p2xPos = ref(30);
-const p2yPos = ref(0);
-
-const p1Health = ref(100);
-const p2Health = ref(100);
-
-const p1MaxHealth = ref(100);
-const p2MaxHealth = ref(100);
+const p1 = reactive({
+  pokemon: "null",
+  imgUrl: "null",
+  xPos: 30,
+  yPos: 0,
+  health: 100,
+  maxHealth: 100,
+  direction: "left",
+});
+const p2 = reactive({
+  pokemon: "null",
+  imgUrl: "null",
+  xPos: 100,
+  yPos: 0,
+  health: 100,
+  maxHealth: 100,
+  direction: "right",
+});
 
 const playerSpeed = 10;
 
-function onArrowUp() {
-  const pkmn = document.querySelector(".pkmn.right");
+function onArrowUp(playerDirection) {
+  const pkmn = document.querySelector(".pkmn." + playerDirection);
   pkmn.classList.add("playerJump");
   setTimeout(() => {
     pkmn.classList.remove("playerJump");
   }, 1500);
 }
 
-const onArrowLeft = (e) => {
-  const pkmn = document.querySelector(".p1");
-  if (pkmn.classList.contains("flip")) {
-    pkmn.classList.remove("flip");
-    p1xPos.value = p1xPos.value + p1xPos.value * -2;
-  }
-  p1xPos.value -= playerSpeed;
-  if (p1xPos.value <= -1000) {
-    p1xPos.value = -999;
+const onArrowLeft = (player) => {
+  flipHorizontal(player, "ArrowLeft");
+  player.xPos -= playerSpeed;
+  if (player.xPos <= -1000) {
+    player.xPos = -999;
   }
 };
-const onArrowRight = (e) => {
-  const pkmn = document.querySelector(".p1");
-  if (!pkmn.classList.contains("flip")) {
+const onArrowRight = (player) => {
+  flipHorizontal(player, "ArrowRight");
+  player.xPos -= playerSpeed;
+  if (player.xPos <= -825) {
+    player.xPos = -820;
+  }
+};
+
+function flipHorizontal(player, movement) {
+  const pkmn = document.querySelector("." + player.direction);
+  if (!pkmn.classList.contains("flip") && movement == "ArrowRight") {
     pkmn.classList.add("flip");
-    p1xPos.value = p1xPos.value + p1xPos.value * -2;
+    player.xPos = player.xPos + player.xPos * -2;
   }
-  p1xPos.value -= playerSpeed;
-  if (p1xPos.value <= -825) {
-    p1xPos.value = -820;
+  if (pkmn.classList.contains("flip") && movement == "ArrowLeft") {
+    pkmn.classList.remove("flip");
+    player.xPos = player.xPos + player.xPos * -2;
   }
-};
+}
 
 const pokeDbUrl = "https://img.pokemondb.net/sprites/black-white/anim/normal/";
 const localUrl = "/gif/";
@@ -147,72 +160,103 @@ function iChooseYou() {
   const poke2 = pokes.filter((poke) =>
     poke.name.includes(selectedCharacter)
   )[0];
-  p1.value = poke1;
-  p2.value = poke2;
-  idleState(poke1, p1Url);
-  idleState(poke2, p2Url);
+  p1.pokemon = poke1;
+  p2.pokemon = poke2;
+  idleState(p1);
+  idleState(p2);
 
   pkmn.classList.add("exit");
 }
 
-function idleState(poke, imgUrl) {
-  imgUrl.value = "url(" + poke.url + poke.name + ".gif)";
+function idleState(player) {
+  player.imgUrl = "url(" + player.pokemon.url + player.pokemon.name + ".gif)";
 }
 
-function attackState(imgUrl, player) {
-  imgUrl.value =
+function attackState(player) {
+  player.imgUrl =
     "url(" +
     "/gif-pokemon-actions/" +
-    player.value.name +
+    player.pokemon.name +
     "/" +
-    player.value.name +
+    player.pokemon.name +
     "-attack.gif)";
 }
 
-const onAttack = (e) => {
-  if (e.key == "x") {
-    const pkmn = document.querySelector(".pkmn.right");
+const onAttack = (player, opponent, e) => {
+  if (e == "x") {
+    const pkmn = document.querySelector(".pkmn." + player.direction);
     pkmn.classList.add("attack");
     if (pkmn.classList.contains("attack")) {
-      attackState(p2Url, p2);
+      attackState(player);
     }
     setTimeout(() => {
       pkmn.classList.remove("attack");
-      idleState(p2.value, p2Url);
-    }, 1500);
-    console.log(
-      "HP: " + p2Health.value,
-      " Are they colliding? " + pokemonCollision()
-    );
-    if (p2Health.value > 0 && pokemonCollision()) {
-      p2Health.value -= 20;
+      idleState(player);
+    }, 2000);
+    if (opponent.health <= 41) {
+      document.querySelector("#p1 .health-bar--health").classList.add("lowHp");
     }
-    if (p2Health.value <= 0) {
-      declareWinner();
+    if (opponent.health > 0 && pokemonCollision()) {
+      opponent.health -= 20;
+    }
+    if (opponent.health <= 0) {
+      declareWinner(player, opponent);
     }
   }
 };
 
 function pokemonCollision() {
   const width = 30;
-  console.log(Math.abs(p2xPos.value - p1xPos.value));
-  return width >= Math.abs(p2xPos.value - p1xPos.value);
+  return width >= Math.abs(p2.xPos - p1.xPos);
 }
 
-function declareWinner() {
-  const loser = document.querySelector(".pkmn.left");
-  loser.classList.add("loser");
-  const winner = document.querySelector(".winner");
-  winner.classList.remove("hidden");
+function declareWinner(winner, loser) {
+  const notWinner = document.querySelector(".pkmn." + loser.direction);
+  notWinner.classList.add("loser");
+  const winnerMsg = document.querySelector(".winner");
+  winnerMsg.classList.remove("hidden");
+  if (winner.direction == "right") {
+    winnerAnnoucement.value = "YOU WIN! Start new Battle by pressing Enter";
+  }
+  if (winner.direction == "left") {
+    winnerAnnoucement.value = "YOU LOSE! Start new Battle by pressing Enter";
+  }
+  clearInterval(intervalId);
 }
-
+let intervalId;
 onMounted(() => {
   iChooseYou();
+  intervalId = setInterval(opponentAI, 500);
+  const ball = document.querySelectorAll(".pkmn.exit .ball");
+  const animationName = window.getComputedStyle(ball[0]).animation;
+  console.log(animationName);
 });
+function opponentAI() {
+  const random = Math.floor(Math.random() * 4);
+  const ball = document.querySelectorAll(".pkmn.exit .ball");
+  const animationName = window.getComputedStyle(ball[0]).animation;
+  console.log(animationName);
+  if (random == 0) {
+    onArrowLeft(p1);
+  }
+  if (random == 1) {
+    onArrowRight(p1);
+  }
+  if (random == 2) {
+    onArrowUp(p1.direction);
+  }
+  if (random == 3 && pokemonCollision()) {
+    onAttack(p1, p2, "x");
+  }
+}
 </script>
 
 <style lang="scss" scoped>
-.pkmn.left.loser .mon {
+.health-bar--health.lowHp {
+  background: linear-gradient(to bottom, #fc2e02 0%, #e13510 100%) !important;
+}
+
+.pkmn.loser .mon {
   animation: loseBattle 1s;
   animation-fill-mode: forwards;
 }
@@ -231,7 +275,7 @@ onMounted(() => {
   }
 }
 
-.pkmn.right.playerJump .mon {
+.pkmn.playerJump .mon {
   animation: playerJump 1.5s linear;
 }
 
@@ -257,7 +301,7 @@ onMounted(() => {
   }
 }
 
-.flip {
+.pkmn.flip {
   transform: rotateY(180deg) !important;
 }
 
@@ -650,8 +694,8 @@ $offset-beast: $cell * 26;
   position: absolute;
   width: 100%;
   height: 100%;
-  left: var(--p2xPos);
-  top: var(--p2yPos);
+  left: var(--p1xPos);
+  top: var(--p1yPos);
   background-repeat: no-repeat;
   background-position: center bottom;
   transform-origin: center 125px;
@@ -660,8 +704,8 @@ $offset-beast: $cell * 26;
 
 .pkmn:nth-child(2) .mon:before {
   background-image: var(--poke2);
-  left: var(--p1xPos);
-  top: var(--p1yPos);
+  left: var(--p2xPos);
+  top: var(--p2yPos);
 }
 
 .pkmn .ball {
@@ -692,12 +736,10 @@ $offset-beast: $cell * 26;
   animation-name: mon-poof-2;
 }
 
-.pkmn.left .mon {
-  transform: scaleX(-1);
-}
-.pkmn.right .mon {
+.pkmn .mon {
   transform: scaleX(1);
 }
+
 .pkmn.right .ball {
   transform: scaleX(-1);
   left: calc(63% + 100px);
@@ -758,6 +800,7 @@ $offset-beast: $cell * 26;
   animation-fill-mode: both;
   animation-name: throw;
   background: none;
+  animation-timeline: scroll();
 }
 .ball.throw:before,
 .pkmn.exit .ball:before {
