@@ -4,8 +4,19 @@
       <div class="col-4">
         <img class="sf-logo" src="/stadium.png" alt="Pokemon Stadium" />
       </div>
-      <h1 class="col-7 align-self-center headTitle">Select Your Player</h1>
+      <div class="col-7 opponentContainer">
+        <div class="opponentMenu">
+          <h2>Play versus</h2>
+          <div class="computer selected" @click="selectOpponent('computer')">
+            <span>COMPUTER</span>
+          </div>
+          <div class="friend" @click="selectOpponent('friend')">
+            <span>FRIEND</span>
+          </div>
+        </div>
+      </div>
     </div>
+
     <div class="container">
       <div class="select-container">
         <CharacterSelect
@@ -18,6 +29,8 @@
           @click="select(item.name)"
         ></CharacterSelect>
       </div>
+      <h1 class="align-self-center headTitle">{{ selectPlayerMsg }}</h1>
+
       <NuxtLink to="game" class="self-center">
         <div
           class="option faded"
@@ -41,17 +54,6 @@
 </template>
 
 <script setup>
-function startGameHoverEffect() {
-  const pokeball = document.querySelector(".pokeball");
-  pokeball.classList.add("selected");
-  pokeball.parentNode.classList.remove("faded");
-}
-
-function endGameHoverEffect() {
-  const pokeball = document.querySelector(".pokeball");
-  pokeball.classList.remove("selected");
-}
-
 const pokeDbUrl = "https://img.pokemondb.net/sprites/black-white/anim/normal/";
 const localUrl = "/gif/";
 const pokes = reactive([
@@ -70,14 +72,101 @@ const pokes = reactive([
 
   { name: "gengar", url: pokeDbUrl },
 ]);
+const isOpponentFriend = ref(false);
+const selectPlayerMsg = ref("Select Your Player");
+const player1Selected = ref(false);
+const player2Selected = ref(false);
+
+function selectOpponent(opponent) {
+  const computer = document.querySelector(".computer");
+  const friend = document.querySelector(".friend");
+  if (opponent == "friend") {
+    isOpponentFriend.value = true;
+    selectPlayerMsg.value = "Select Player 1";
+    computer.classList.remove("selected");
+    friend.classList.add("selected");
+  }
+  if (opponent == "computer") {
+    isOpponentFriend.value = false;
+    selectPlayerMsg.value = "Select Your Player";
+    friend.classList.remove("selected");
+    computer.classList.add("selected");
+    player1Selected.value = false;
+    player2Selected.value = false;
+    if (localStorage.getItem("player2")) {
+      localStorage.removeItem("player2");
+    }
+    disSelect();
+  }
+}
+
+function startGameHoverEffect() {
+  const pokeball = document.querySelector(".pokeball");
+  pokeball.classList.add("selected");
+  pokeball.parentNode.classList.remove("faded");
+}
+
+function endGameHoverEffect() {
+  const pokeball = document.querySelector(".pokeball");
+  pokeball.classList.remove("selected");
+}
 
 function select(id) {
   const character = document.getElementById(id);
-  if (document.querySelector(".character.active")) {
-    document.querySelector(".character.active").classList.remove("active");
+  disSelect(character);
+  if (
+    !player2Selected.value &&
+    player1Selected.value &&
+    isOpponentFriend.value
+  ) {
+    character.classList.add("active");
+    localStorage.setItem("player2", character.getAttribute("id"));
+    character.classList.add("p2");
+    player2Selected.value = true;
   }
-  character.classList.add("active");
-  localStorage.setItem("player1", character.getAttribute("id"));
+  if (!player1Selected.value) {
+    character.classList.add("active");
+    localStorage.setItem("player1", character.getAttribute("id"));
+    character.classList.add("p1");
+    player1Selected.value = true;
+  }
+  console.log(
+    player1Selected.value,
+    player2Selected.value,
+    "select(" + id + ") after diselect"
+  );
+}
+
+function disSelect(character) {
+  if (document.querySelector(".character.active")) {
+    if (!player1Selected.value || !isOpponentFriend.value) {
+      document.querySelector(".character.active").classList.remove("active");
+      player1Selected.value = false;
+      player2Selected.value = false;
+    }
+    if (
+      !player2Selected.value &&
+      player1Selected.value &&
+      isOpponentFriend.value &&
+      document.querySelector(".character.active.p2")
+    ) {
+      document.querySelector(".character.active.p1").classList.remove("active");
+      character.classList.remove("p1");
+      player1Selected.value = false;
+    }
+    if (
+      (player1Selected.value && player2Selected.value) ||
+      !isOpponentFriend.value
+    ) {
+      if (document.querySelector(".character.active.p2")) {
+        document
+          .querySelector(".character.active.p2")
+          .classList.remove("active");
+      }
+      character.classList.remove("p2");
+      player2Selected.value = false;
+    }
+  }
 }
 </script>
 
@@ -86,6 +175,70 @@ $black: #333;
 $bg: #ffffff;
 $red: #f15324;
 $white: white;
+$pokeball-top-border: #e33a1c;
+$pokeball-middle: #ee7f56;
+$pokeball-end: #ce2312;
+$pokeball-bottom-border: #758bc4;
+
+.opponentContainer {
+  height: 100px;
+  display: block;
+  margin: 50px auto;
+  position: relative;
+}
+.opponentMenu {
+  position: absolute;
+  width: 450px;
+  height: 150px;
+}
+
+.opponentMenu h2 {
+  text-align: center;
+  font-weight: bold;
+  font-size: 3em;
+}
+
+.opponentMenu div {
+  display: inline-block;
+  width: 210px;
+  height: 70px;
+  margin-top: 25px;
+  padding-top: 15px;
+  -webkit-text-stroke: 0.7px;
+  font-size: 1.5em;
+  vertical-align: middle;
+  text-align: center;
+  border-radius: 50px;
+}
+
+.opponentMenu {
+  div:hover,
+  & div.selected {
+    border-top: 2px solid $pokeball-top-border;
+    border-bottom: 2px solid $pokeball-bottom-border;
+    background-image: linear-gradient(to bottom, $pokeball-end 50%, white 50%);
+  }
+  div:hover span,
+  & div.selected span {
+    z-index: 2;
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 50px;
+    padding: 5px;
+    text-decoration: none;
+    position: relative;
+  }
+  div:hover:after,
+  & div.selected:after {
+    content: "";
+    width: 100%;
+    height: 4px;
+    bottom: 19px;
+    background: black;
+    display: block;
+    position: relative;
+  }
+}
 
 .option {
   display: flex;
