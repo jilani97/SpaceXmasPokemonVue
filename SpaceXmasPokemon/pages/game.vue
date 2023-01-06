@@ -33,7 +33,11 @@
       @keydown.left="onArrowLeft(p2)"
       @keydown.up="onArrowUp(p2.direction)"
       @keydown.right="onArrowRight(p2)"
-      @keydown.x="onAttack(p2, p1, 'x')"
+      @keyup.x="onAttack(p2, p1, 'x')"
+      @keypress.a="onArrowLeft(p1)"
+      @keypress.w="onArrowUp(p1.direction)"
+      @keypress.d="onArrowRight(p1)"
+      @keyup.s="onAttack(p1, p2, 'x')"
       @keyboard.enter="iChooseYou()"
     >
       <div
@@ -75,7 +79,8 @@
 </template>
 
 <script setup>
-const selectedCharacter = localStorage.getItem("player1");
+const player1Character = localStorage.getItem("player1");
+const player2Character = localStorage.getItem("player2");
 const winnerAnnoucement = ref("");
 
 const p1 = reactive({
@@ -155,11 +160,14 @@ const pokes = reactive([
 function iChooseYou() {
   const pkmn = document.querySelector(".pkmn");
   pkmn.classList.remove("exit");
-
-  const poke1 = pokes[Math.floor(Math.random() * pokes.length)];
-  const poke2 = pokes.filter((poke) =>
-    poke.name.includes(selectedCharacter)
-  )[0];
+  let poke1;
+  if (!player2Character) {
+    poke1 = pokes[Math.floor(Math.random() * pokes.length)];
+  }
+  if (player2Character) {
+    poke1 = pokes.filter((poke) => poke.name.includes(player2Character))[0];
+  }
+  const poke2 = pokes.filter((poke) => poke.name.includes(player1Character))[0];
   p1.pokemon = poke1;
   p2.pokemon = poke2;
   idleState(p1);
@@ -226,7 +234,9 @@ function declareWinner(winner, loser) {
 let intervalId;
 onMounted(() => {
   iChooseYou();
-  intervalId = setInterval(opponentAI, 500);
+  if (!player2Character) {
+    intervalId = setInterval(opponentAI, 500);
+  }
   const ball = document.querySelectorAll(".pkmn.exit .ball");
   const animationName = window.getComputedStyle(ball[0]).animation;
   console.log(animationName);
@@ -800,7 +810,6 @@ $offset-beast: $cell * 26;
   animation-fill-mode: both;
   animation-name: throw;
   background: none;
-  animation-timeline: scroll();
 }
 .ball.throw:before,
 .pkmn.exit .ball:before {

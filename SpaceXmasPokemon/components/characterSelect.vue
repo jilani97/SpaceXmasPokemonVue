@@ -73,6 +73,9 @@ const props = defineProps({
       font-weight: 700;
       text-shadow: 0px 0px 5px rgba(255, 255, 255, 1);
     }
+    &.p2:after {
+      content: "2P";
+    }
     .character__img {
       filter: grayscale(0);
       outline: 4px solid white;
