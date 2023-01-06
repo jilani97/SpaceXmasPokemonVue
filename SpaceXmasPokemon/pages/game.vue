@@ -107,9 +107,11 @@ const playerSpeed = 10;
 function onArrowUp(playerDirection) {
   const pkmn = document.querySelector(".pkmn." + playerDirection);
   pkmn.classList.add("playerJump");
-  setTimeout(() => {
+  const pkmnMon = document.querySelector(".pkmn." + playerDirection + " .mon");
+  console.log(pkmnMon.getAnimations()[0].playState);
+  if (pkmnMon.getAnimations()[0].playState != "running") {
     pkmn.classList.remove("playerJump");
-  }, 1500);
+  }
 }
 
 const onArrowLeft = (player) => {
@@ -237,26 +239,23 @@ onMounted(() => {
   if (!player2Character) {
     intervalId = setInterval(opponentAI, 500);
   }
-  const ball = document.querySelectorAll(".pkmn.exit .ball");
-  const animationName = window.getComputedStyle(ball[0]).animation;
-  console.log(animationName);
 });
 function opponentAI() {
   const random = Math.floor(Math.random() * 4);
   const ball = document.querySelectorAll(".pkmn.exit .ball");
-  const animationName = window.getComputedStyle(ball[0]).animation;
-  console.log(animationName);
-  if (random == 0) {
-    onArrowLeft(p1);
-  }
-  if (random == 1) {
-    onArrowRight(p1);
-  }
-  if (random == 2) {
-    onArrowUp(p1.direction);
-  }
-  if (random == 3 && pokemonCollision()) {
-    onAttack(p1, p2, "x");
+  if (ball[0].getAnimations()[0].playState == "finished") {
+    if (random == 0) {
+      onArrowLeft(p1);
+    }
+    if (random == 1) {
+      onArrowRight(p1);
+    }
+    if (random == 2) {
+      onArrowUp(p1.direction);
+    }
+    if (random == 3 && pokemonCollision()) {
+      onAttack(p1, p2, "x");
+    }
   }
 }
 </script>
@@ -286,7 +285,10 @@ function opponentAI() {
 }
 
 .pkmn.playerJump .mon {
-  animation: playerJump 1.5s linear;
+  animation-duration: 1s;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+  animation-name: playerJump;
 }
 
 @keyframes playerJump {
