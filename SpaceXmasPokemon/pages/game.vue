@@ -180,26 +180,24 @@ function attackState(player) {
     "-attack.gif)";
 }
 
-const onAttack = (player, opponent, e) => {
-  if (e == "x") {
-    const pkmn = document.querySelector(".pkmn." + player.direction);
-    pkmn.classList.add("attack");
-    if (pkmn.classList.contains("attack")) {
-      attackState(player);
-    }
-    setTimeout(() => {
-      pkmn.classList.remove("attack");
-      idleState(player);
-    }, 2000);
-    if (opponent.health <= 41) {
-      document.querySelector("#p1 .health-bar--health").classList.add("lowHp");
-    }
-    if (opponent.health > 0 && pokemonCollision()) {
-      opponent.health -= 20;
-    }
-    if (opponent.health <= 0) {
-      declareWinner(player, opponent);
-    }
+const onAttack = (player, opponent) => {
+  const pkmn = document.querySelector(".pkmn." + player.direction);
+  pkmn.classList.add("attack");
+  if (pkmn.classList.contains("attack")) {
+    attackState(player);
+  }
+  setTimeout(() => {
+    pkmn.classList.remove("attack");
+    idleState(player);
+  }, 2000);
+  if (opponent.health <= 41) {
+    document.querySelector("#p1 .health-bar--health").classList.add("lowHp");
+  }
+  if (opponent.health > 0 && pokemonCollision()) {
+    opponent.health -= 20;
+  }
+  if (opponent.health <= 0) {
+    declareWinner(player, opponent);
   }
 };
 
@@ -250,8 +248,8 @@ function opponentAI() {
 let map = {};
 onkeydown = onkeyup = function (e) {
   map[e.key] = e.type == "keydown";
-  if (map["x"]) {
-    onAttack(p2, p1, "x");
+  if (map["ArrowDown"]) {
+    onAttack(p2, p1);
   }
   if (map["ArrowUp"]) {
     onArrowUp(p2.direction);
@@ -270,7 +268,7 @@ onkeydown = onkeyup = function (e) {
     onArrowLeft(p1);
   }
   if (map["s"]) {
-    onAttack(p1, p2, "x");
+    onAttack(p1, p2);
   }
   if (map["d"]) {
     onArrowRight(p1);

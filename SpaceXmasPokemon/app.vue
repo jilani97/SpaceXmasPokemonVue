@@ -7,7 +7,8 @@
     </nav>
     <NuxtPage />
     <div class="footerText text-center">
-      Use Arrow keys to Move and x to attack
+      <p>Player1 : Use Arrow keys to Move and Down key to Attack</p>
+      <p>Player 2: Use WASD to Move and S to Attack</p>
     </div>
     <footer class="footerText absolute bottom-0 text-center w-100">
       <p>
