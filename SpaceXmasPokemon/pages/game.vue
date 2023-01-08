@@ -250,7 +250,6 @@ function opponentAI() {
 let map = {};
 onkeydown = onkeyup = function (e) {
   map[e.key] = e.type == "keydown";
-  console.log(map);
   if (map["x"]) {
     onAttack(p2, p1, "x");
   }
