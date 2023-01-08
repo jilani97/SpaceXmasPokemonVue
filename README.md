@@ -1,6 +1,8 @@
 # SpaceXmasPokemonVue
 
-A 2D Platformer Game with Pokemon Sprites from pokemondb.net/sprites 
+Play on https://spacexmaspokemon.netlify.app/
+
+A 2D Platformer Game with Pokemon Sprites from www.pokemondb.net/sprites 
 Made with Vue3 and Nuxt3
 
 
