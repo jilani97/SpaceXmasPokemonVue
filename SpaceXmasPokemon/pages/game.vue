@@ -27,19 +27,7 @@
     >
       {{ winnerAnnoucement }}
     </div>
-    <div
-      class="pokemon w-100 pt-48 mt-36 relative"
-      tabindex="0"
-      @keydown.left="onArrowLeft(p2)"
-      @keydown.up="onArrowUp(p2.direction)"
-      @keydown.right="onArrowRight(p2)"
-      @keyup.x="onAttack(p2, p1, 'x')"
-      @keypress.a="onArrowLeft(p1)"
-      @keypress.w="onArrowUp(p1.direction)"
-      @keypress.d="onArrowRight(p1)"
-      @keyup.s="onAttack(p1, p2, 'x')"
-      @keyboard.enter="iChooseYou()"
-    >
+    <div class="pokemon w-100 pt-48 mt-36 relative">
       <div
         class="pkmn exit left flip"
         :style="{
@@ -103,13 +91,15 @@ const p2 = reactive({
 });
 
 const playerSpeed = 10;
-
+// TODO: async keyevents, refactor to Canvas, animationState on jump and attack replace setTimeOut
 function onArrowUp(playerDirection) {
   const pkmn = document.querySelector(".pkmn." + playerDirection);
   pkmn.classList.add("playerJump");
-  setTimeout(() => {
+  const pkmnMon = document.querySelector(".pkmn." + playerDirection + " .mon");
+  console.log(pkmnMon.getAnimations()[0].playState);
+  if (pkmnMon.getAnimations()[0].playState != "running") {
     pkmn.classList.remove("playerJump");
-  }, 1500);
+  }
 }
 
 const onArrowLeft = (player) => {
@@ -190,26 +180,24 @@ function attackState(player) {
     "-attack.gif)";
 }
 
-const onAttack = (player, opponent, e) => {
-  if (e == "x") {
-    const pkmn = document.querySelector(".pkmn." + player.direction);
-    pkmn.classList.add("attack");
-    if (pkmn.classList.contains("attack")) {
-      attackState(player);
-    }
-    setTimeout(() => {
-      pkmn.classList.remove("attack");
-      idleState(player);
-    }, 2000);
-    if (opponent.health <= 41) {
-      document.querySelector("#p1 .health-bar--health").classList.add("lowHp");
-    }
-    if (opponent.health > 0 && pokemonCollision()) {
-      opponent.health -= 20;
-    }
-    if (opponent.health <= 0) {
-      declareWinner(player, opponent);
-    }
+const onAttack = (player, opponent) => {
+  const pkmn = document.querySelector(".pkmn." + player.direction);
+  pkmn.classList.add("attack");
+  if (pkmn.classList.contains("attack")) {
+    attackState(player);
+  }
+  setTimeout(() => {
+    pkmn.classList.remove("attack");
+    idleState(player);
+  }, 2000);
+  if (opponent.health <= 41) {
+    document.querySelector("#p1 .health-bar--health").classList.add("lowHp");
+  }
+  if (opponent.health > 0 && pokemonCollision()) {
+    opponent.health -= 20;
+  }
+  if (opponent.health <= 0) {
+    declareWinner(player, opponent);
   }
 };
 
@@ -237,28 +225,58 @@ onMounted(() => {
   if (!player2Character) {
     intervalId = setInterval(opponentAI, 500);
   }
-  const ball = document.querySelectorAll(".pkmn.exit .ball");
-  const animationName = window.getComputedStyle(ball[0]).animation;
-  console.log(animationName);
 });
 function opponentAI() {
   const random = Math.floor(Math.random() * 4);
   const ball = document.querySelectorAll(".pkmn.exit .ball");
-  const animationName = window.getComputedStyle(ball[0]).animation;
-  console.log(animationName);
-  if (random == 0) {
-    onArrowLeft(p1);
-  }
-  if (random == 1) {
-    onArrowRight(p1);
-  }
-  if (random == 2) {
-    onArrowUp(p1.direction);
-  }
-  if (random == 3 && pokemonCollision()) {
-    onAttack(p1, p2, "x");
+  if (ball[0].getAnimations()[0].playState == "finished") {
+    if (random == 0) {
+      onArrowLeft(p1);
+    }
+    if (random == 1) {
+      onArrowRight(p1);
+    }
+    if (random == 2) {
+      onArrowUp(p1.direction);
+    }
+    if (random == 3 && pokemonCollision()) {
+      onAttack(p1, p2, "x");
+    }
   }
 }
+
+let map = {};
+onkeydown = onkeyup = function (e) {
+  map[e.key] = e.type == "keydown";
+  if (map["ArrowDown"]) {
+    onAttack(p2, p1);
+  }
+  if (map["ArrowUp"]) {
+    onArrowUp(p2.direction);
+  }
+  if (map["ArrowRight"]) {
+    onArrowRight(p2);
+  }
+  if (map["ArrowLeft"]) {
+    onArrowLeft(p2);
+  }
+  // PLAYER 2 KeyEvents:
+  if (map["w"]) {
+    onArrowUp(p1.direction);
+  }
+  if (map["a"]) {
+    onArrowLeft(p1);
+  }
+  if (map["s"]) {
+    onAttack(p1, p2);
+  }
+  if (map["d"]) {
+    onArrowRight(p1);
+  }
+  if (map["Enter"]) {
+    iChooseYou();
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -286,7 +304,10 @@ function opponentAI() {
 }
 
 .pkmn.playerJump .mon {
-  animation: playerJump 1.5s linear;
+  animation-duration: 1s;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+  animation-name: playerJump;
 }
 
 @keyframes playerJump {
