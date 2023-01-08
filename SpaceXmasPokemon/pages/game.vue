@@ -27,19 +27,7 @@
     >
       {{ winnerAnnoucement }}
     </div>
-    <div
-      class="pokemon w-100 pt-48 mt-36 relative"
-      tabindex="0"
-      @keydown.left="onArrowLeft(p2)"
-      @keydown.up="onArrowUp(p2.direction)"
-      @keydown.right="onArrowRight(p2)"
-      @keyup.x="onAttack(p2, p1, 'x')"
-      @keypress.a="onArrowLeft(p1)"
-      @keypress.w="onArrowUp(p1.direction)"
-      @keypress.d="onArrowRight(p1)"
-      @keyup.s="onAttack(p1, p2, 'x')"
-      @keyboard.enter="iChooseYou()"
-    >
+    <div class="pokemon w-100 pt-48 mt-36 relative">
       <div
         class="pkmn exit left flip"
         :style="{
@@ -103,7 +91,7 @@ const p2 = reactive({
 });
 
 const playerSpeed = 10;
-
+// TODO: async keyevents, refactor to Canvas, animationState on jump and attack replace setTimeOut
 function onArrowUp(playerDirection) {
   const pkmn = document.querySelector(".pkmn." + playerDirection);
   pkmn.classList.add("playerJump");
@@ -258,6 +246,40 @@ function opponentAI() {
     }
   }
 }
+
+let map = {};
+onkeydown = onkeyup = function (e) {
+  map[e.key] = e.type == "keydown";
+  console.log(map);
+  if (map["x"]) {
+    onAttack(p2, p1, "x");
+  }
+  if (map["ArrowUp"]) {
+    onArrowUp(p2.direction);
+  }
+  if (map["ArrowRight"]) {
+    onArrowRight(p2);
+  }
+  if (map["ArrowLeft"]) {
+    onArrowLeft(p2);
+  }
+  // PLAYER 2 KeyEvents:
+  if (map["w"]) {
+    onArrowUp(p1.direction);
+  }
+  if (map["a"]) {
+    onArrowLeft(p1);
+  }
+  if (map["s"]) {
+    onAttack(p1, p2, "x");
+  }
+  if (map["d"]) {
+    onArrowRight(p1);
+  }
+  if (map["Enter"]) {
+    iChooseYou();
+  }
+};
 </script>
 
 <style lang="scss" scoped>
